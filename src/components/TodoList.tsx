@@ -4,28 +4,30 @@ import { TodoItem } from './TodoItem';
 
 interface TodoListProps {
   filteredTodos: Todo[];
-  tempClearAll: Todo[] | null;
+  loadingTodoIds: number[] | [];
   tempTodo: Todo | null;
-  tempDeleteTodo: Todo | null;
   handleDelete: (id: number) => void;
 }
 
 export const TodoList: React.FC<TodoListProps> = ({
   filteredTodos,
-  tempClearAll,
+  loadingTodoIds,
   tempTodo,
-  tempDeleteTodo,
   handleDelete,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      <TodoItem
-        filteredTodos={filteredTodos}
-        tempClearAll={tempClearAll}
-        tempDeleteTodo={tempDeleteTodo}
-        handleDelete={handleDelete}
-      />
-      {tempTodo !== null && (
+      {filteredTodos.map(todo => {
+        return (
+          <TodoItem
+            key={todo.id}
+            todo={todo}
+            loadingTodoIds={loadingTodoIds}
+            handleDelete={handleDelete}
+          />
+        );
+      })}
+      {tempTodo && (
         <div data-cy="Todo" className="todo">
           <label
             className="todo__status-label"

@@ -14,11 +14,12 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [tempDeleteTodo, setTempDeleteTodo] = useState<Todo | null>(null);
-  const [tempClearAll, setTempClearAll] = useState<Todo[] | null>(null);
+  const [loadingTodoIds, setLoadingTodoIds] = useState<number[]>([]);
 
   const activeTodos = todos.filter(todo => !todo.completed);
-  const completedTodos = todos.filter(todo => todo.completed);
+  const completedTodos = todos
+    .filter(todo => todo.completed)
+    .map(todo => todo.id);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,20 +44,18 @@ export const App: React.FC = () => {
 
   const handlClearAll = async () => {
     try {
-      setTempClearAll(completedTodos);
+      setLoadingTodoIds(completedTodos);
       const deletionList = await Promise.allSettled(
-        completedTodos.map(todo => deleteTodo(todo.id)),
+        completedTodos.map(id => deleteTodo(id)),
       );
 
       const hasErorr = deletionList.some(item => item.status === 'rejected');
       const seccessIds = completedTodos
-        .map((todo, i) =>
-          deletionList[i].status === 'fulfilled' ? todo.id : null,
-        )
+        .map((id, i) => (deletionList[i].status === 'fulfilled' ? id : null))
         .filter((id): id is number => id !== null);
 
       setTodos(prev => prev.filter(todo => !seccessIds.includes(todo.id)));
-      setTempClearAll(null);
+      setLoadingTodoIds([]);
 
       if (hasErorr) {
         onError('Unable to delete a todo');
@@ -68,19 +67,16 @@ export const App: React.FC = () => {
 
   const handleDelete = async (todosId: number) => {
     try {
-      const deletedTodo =
-        filteredTodos.find(todo => todo.id === todosId) || null;
-
-      setTempDeleteTodo(deletedTodo);
+      setLoadingTodoIds([todosId]);
       const deleteAproved = await deleteTodo(todosId);
 
       if (deleteAproved) {
         setTodos(filteredTodos.filter(todo => todo.id !== todosId));
-        setTempDeleteTodo(null);
+        setLoadingTodoIds([]);
       }
     } catch (error) {
       onError('Unable to delete a todo');
-      setTempDeleteTodo(null);
+      setLoadingTodoIds([]);
     }
   };
 
@@ -106,10 +102,13 @@ export const App: React.FC = () => {
             setTodos([...todos, newTodo]);
             setInput('');
             setErrorMessage('');
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
           }
         }
 
-        if (cleanInput === '') {
+        if (!cleanInput) {
           onError('Title should not be empty');
           setTempTodo(null);
         }
@@ -131,10 +130,10 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (tempTodo === null || tempDeleteTodo === null) {
+    if (tempTodo === null || loadingTodoIds) {
       inputRef.current?.focus();
     }
-  }, [tempTodo, tempDeleteTodo, tempClearAll]);
+  }, [tempTodo, loadingTodoIds]);
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -155,19 +154,19 @@ export const App: React.FC = () => {
         />
         <TodoList
           filteredTodos={filteredTodos}
-          tempClearAll={tempClearAll}
+          loadingTodoIds={loadingTodoIds}
           tempTodo={tempTodo}
-          tempDeleteTodo={tempDeleteTodo}
           handleDelete={handleDelete}
         />
-        <Footer
-          todos={todos}
-          activeTodos={activeTodos}
-          completedTodos={completedTodos}
-          filter={filter}
-          setFilter={setFilter}
-          handlClearAll={handlClearAll}
-        />
+        {todos.length > 0 && (
+          <Footer
+            activeTodos={activeTodos}
+            completedTodos={completedTodos}
+            filter={filter}
+            setFilter={setFilter}
+            handlClearAll={handlClearAll}
+          />
+        )}
       </div>
 
       <div

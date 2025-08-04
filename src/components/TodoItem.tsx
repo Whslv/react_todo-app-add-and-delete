@@ -2,67 +2,59 @@ import React from 'react';
 import { Todo } from '../types/Todo';
 
 interface TodoItemProps {
-  filteredTodos: Todo[];
-  tempClearAll: Todo[] | null;
-  tempDeleteTodo: Todo | null;
+  todo: Todo;
+  loadingTodoIds: number[] | [];
   handleDelete: (id: number) => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
-  filteredTodos,
-  tempClearAll,
-  tempDeleteTodo,
+  todo,
+  loadingTodoIds,
   handleDelete,
 }) => {
   return (
     <>
-      {filteredTodos.map(todo => {
-        return (
-          <>
-            {/* overlay will cover the todo while it is being deleted or updated */}
+      <div
+        data-cy="Todo"
+        className={`todo ${todo.completed && 'completed'}`}
+        key={todo.id}
+      >
+        <label className="todo__status-label" htmlFor={`todo-${todo.id}`}>
+          {
+            <input
+              data-cy="TodoStatus"
+              type="checkbox"
+              className="todo__status"
+              checked={todo.completed}
+            />
+          }
+        </label>
 
-            {/* This todo is an active todo */}
-            <div
-              data-cy="Todo"
-              className={`todo ${todo.completed && 'completed'}`}
-              key={todo.id}
-            >
-              <label className="todo__status-label" htmlFor={`todo-${todo.id}`}>
-                {
-                  <input
-                    data-cy="TodoStatus"
-                    type="checkbox"
-                    className="todo__status"
-                    checked={todo.completed}
-                  />
-                }
-              </label>
+        <span data-cy="TodoTitle" className="todo__title">
+          {todo.title}
+        </span>
+        <button
+          type="button"
+          className="todo__remove"
+          data-cy="TodoDelete"
+          onClick={() => {
+            handleDelete(todo.id);
+          }}
+        >
+          ×
+        </button>
 
-              <span data-cy="TodoTitle" className="todo__title">
-                {todo.title}
-              </span>
-              <button
-                type="button"
-                className="todo__remove"
-                data-cy="TodoDelete"
-                onClick={() => {
-                  handleDelete(todo.id);
-                }}
-              >
-                ×
-              </button>
+        <div
+          data-cy="TodoLoader"
+          className={`modal overlay ${loadingTodoIds?.some(t => t === todo.id) ? 'is-active' : ''}`}
+        >
+          <div className="modal-background has-background-white-ter" />
+          <div className="loader" />
+        </div>
+      </div>
 
-              <div
-                data-cy="TodoLoader"
-                className={`modal overlay ${tempDeleteTodo?.id === todo.id || tempClearAll?.some(t => t.id === todo.id) ? 'is-active' : ''}`}
-              >
-                <div className="modal-background has-background-white-ter" />
-                <div className="loader" />
-              </div>
-            </div>
-
-            {/* This todo is being edited */}
-            {/* <div data-cy="Todo" className="todo">
+      {/* This todo is being edited */}
+      {/* <div data-cy="Todo" className="todo">
                 <label className="todo__status-label">
                   <input
                     data-cy="TodoStatus"
@@ -71,8 +63,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   />
                 </label> */}
 
-            {/* This form is shown instead of the title and remove button */}
-            {/* <form>
+      {/* This form is shown instead of the title and remove button */}
+      {/* <form>
                   <input
                     data-cy="TodoTitleField"
                     type="text"
@@ -87,9 +79,6 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                   <div className="loader" />
                 </div>
               </div> */}
-          </>
-        );
-      })}
     </>
   );
 };

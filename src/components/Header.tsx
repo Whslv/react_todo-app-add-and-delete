@@ -19,40 +19,30 @@ export const Header: React.FC<HeaderProps> = ({
   handleTodoSubmit,
 }) => {
   return (
-    <>
-      <header className="todoapp__header">
-        <button
-          type="button"
-          className={`todoapp__toggle-all ${todos.every(todo => todo.completed && 'active')}`}
-          data-cy="ToggleAllButton"
-        />
+    <header className="todoapp__header">
+      <button
+        type="button"
+        className={`todoapp__toggle-all ${todos.every(todo => todo.completed && 'active')}`}
+        data-cy="ToggleAllButton"
+      />
 
-        <form>
-          <input
-            data-cy="NewTodoField"
-            ref={inputRef}
-            type="text"
-            disabled={tempTodo !== null}
-            value={input}
-            className="todoapp__new-todo"
-            placeholder="What needs to be done?"
-            onKeyDown={e => {
-              handleTodoSubmit(e);
-              if (
-                typeof inputRef !== 'string' &&
-                inputRef !== null &&
-                'current' in inputRef &&
-                inputRef.current
-              ) {
-                inputRef.current.focus();
-              }
-            }}
-            onChange={e => {
-              setInput(e.target.value);
-            }}
-          />
-        </form>
-      </header>
-    </>
+      <form>
+        <input
+          data-cy="NewTodoField"
+          ref={inputRef}
+          type="text"
+          disabled={tempTodo !== null}
+          value={input}
+          className="todoapp__new-todo"
+          placeholder="What needs to be done?"
+          onKeyDown={e => {
+            handleTodoSubmit(e);
+          }}
+          onChange={e => {
+            setInput(e.target.value);
+          }}
+        />
+      </form>
+    </header>
   );
 };
